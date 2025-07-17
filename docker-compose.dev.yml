@@ -1,0 +1,16 @@
+services:
+  catalyst-api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: catalyst_api_dev
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8082:8082"
+    networks:
+      - shared_network
+
+networks:
+  shared_network:
