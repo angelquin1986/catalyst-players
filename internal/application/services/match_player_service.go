@@ -23,19 +23,15 @@ func (s *MatchPlayerService) CreateMatchPlayer(matchPlayer *entities.MatchPlayer
 	if matchPlayer.MatchID == 0 {
 		return errors.New("match ID is required")
 	}
-	
+
 	if matchPlayer.TeamID == 0 {
 		return errors.New("team ID is required")
 	}
-	
-	if matchPlayer.PlayerID == 0 {
-		return errors.New("player ID is required")
-	}
-	
+
 	if matchPlayer.RedCard < 0 || matchPlayer.YellowCard < 0 || matchPlayer.Goals < 0 {
 		return errors.New("statistics cannot be negative")
 	}
-	
+
 	return s.matchPlayerRepo.Create(matchPlayer)
 }
 
@@ -44,7 +40,7 @@ func (s *MatchPlayerService) GetMatchPlayerByID(id uint) (*entities.MatchPlayer,
 	if id == 0 {
 		return nil, errors.New("invalid match player ID")
 	}
-	
+
 	return s.matchPlayerRepo.GetByID(id)
 }
 
@@ -58,7 +54,7 @@ func (s *MatchPlayerService) GetMatchPlayersByMatchID(matchID uint) ([]entities.
 	if matchID == 0 {
 		return nil, errors.New("invalid match ID")
 	}
-	
+
 	return s.matchPlayerRepo.GetByMatchID(matchID)
 }
 
@@ -67,7 +63,7 @@ func (s *MatchPlayerService) GetMatchPlayersByPlayerID(playerID uint) ([]entitie
 	if playerID == 0 {
 		return nil, errors.New("invalid player ID")
 	}
-	
+
 	return s.matchPlayerRepo.GetByPlayerID(playerID)
 }
 
@@ -76,7 +72,7 @@ func (s *MatchPlayerService) GetMatchPlayersByTeamID(teamID uint) ([]entities.Ma
 	if teamID == 0 {
 		return nil, errors.New("invalid team ID")
 	}
-	
+
 	return s.matchPlayerRepo.GetByTeamID(teamID)
 }
 
@@ -85,11 +81,11 @@ func (s *MatchPlayerService) GetPlayerStats(playerID uint, seasonID uint) ([]ent
 	if playerID == 0 {
 		return nil, errors.New("invalid player ID")
 	}
-	
+
 	if seasonID == 0 {
 		return nil, errors.New("invalid season ID")
 	}
-	
+
 	return s.matchPlayerRepo.GetPlayerStats(playerID, seasonID)
 }
 
@@ -98,11 +94,11 @@ func (s *MatchPlayerService) UpdateMatchPlayer(matchPlayer *entities.MatchPlayer
 	if matchPlayer.ID == 0 {
 		return errors.New("invalid match player ID")
 	}
-	
+
 	if matchPlayer.RedCard < 0 || matchPlayer.YellowCard < 0 || matchPlayer.Goals < 0 {
 		return errors.New("statistics cannot be negative")
 	}
-	
+
 	return s.matchPlayerRepo.Update(matchPlayer)
 }
 
@@ -111,6 +107,6 @@ func (s *MatchPlayerService) DeleteMatchPlayer(id uint) error {
 	if id == 0 {
 		return errors.New("invalid match player ID")
 	}
-	
+
 	return s.matchPlayerRepo.Delete(id)
-} 
+}

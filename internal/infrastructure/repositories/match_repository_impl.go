@@ -49,14 +49,16 @@ func (r *MatchRepositoryImpl) GetByID(id uint) (*entities.Match, error) {
 	return &match, nil
 }
 
-// GetAll retrieves all matches
+// GetAll retrieves all matches where the related season is active
 func (r *MatchRepositoryImpl) GetAll() ([]entities.Match, error) {
 	var matches []entities.Match
-	err := r.db.Preload("HomeTeam").
+	err := r.db.Joins("JOIN season ON season.id = match.season_id AND season.status = 1").
+		Preload("HomeTeam").
 		Preload("AwayTeam").
 		Preload("Season").
 		Preload("Stadium").
-		Preload("PlayerStats").Find(&matches).Error
+		Preload("PlayerStats").
+		Find(&matches).Error
 	return matches, err
 }
 

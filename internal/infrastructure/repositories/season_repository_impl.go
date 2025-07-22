@@ -49,9 +49,9 @@ func (r *SeasonRepositoryImpl) GetByID(id uint) (*entities.Season, error) {
 
 // GetAll retrieves all seasons
 func (r *SeasonRepositoryImpl) GetAll() ([]entities.Season, error) {
-	r.logger.Info("Retrieving all seasons")
+	r.logger.Info("Retrieving all seasons (status=1)")
 	var seasons []entities.Season
-	err := r.db.Preload("Teams").Find(&seasons).Error
+	err := r.db.Preload("Teams").Where("status = ?", entities.SeasonStatusActive).Find(&seasons).Error
 	if err != nil {
 		r.logger.Error("Failed to retrieve all seasons: %v", err)
 		return nil, err
@@ -62,9 +62,9 @@ func (r *SeasonRepositoryImpl) GetAll() ([]entities.Season, error) {
 
 // GetAllWithTeams retrieves all seasons with their associated teams
 func (r *SeasonRepositoryImpl) GetAllWithTeams() ([]entities.Season, error) {
-	r.logger.Info("Retrieving all seasons with teams")
+	r.logger.Info("Retrieving all seasons with teams (status=1)")
 	var seasons []entities.Season
-	err := r.db.Preload("Teams").Find(&seasons).Error
+	err := r.db.Preload("Teams").Where("status = ?", entities.SeasonStatusActive).Find(&seasons).Error
 	if err != nil {
 		r.logger.Error("Failed to retrieve all seasons with teams: %v", err)
 		return nil, err

@@ -27,10 +27,10 @@ func (r *PlayerRepositoryImpl) Create(player *entities.Player) error {
 	return r.db.Create(player).Error
 }
 
-// GetByID retrieves a player by ID
-func (r *PlayerRepositoryImpl) GetByID(id uint) (*entities.Player, error) {
+// GetByID retrieves a player by ID (cedula)
+func (r *PlayerRepositoryImpl) GetByID(id string) (*entities.Player, error) {
 	var player entities.Player
-	err := r.db.First(&player, id).Error
+	err := r.db.First(&player, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -52,9 +52,9 @@ func (r *PlayerRepositoryImpl) GetByTeamID(teamID uint) ([]entities.Player, erro
 }
 
 // GetWithTeam retrieves a player with team information
-func (r *PlayerRepositoryImpl) GetWithTeam(id uint) (*entities.Player, error) {
+func (r *PlayerRepositoryImpl) GetWithTeam(id string) (*entities.Player, error) {
 	var player entities.Player
-	err := r.db.Preload("Team").First(&player, id).Error
+	err := r.db.Preload("Team").First(&player, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -62,9 +62,9 @@ func (r *PlayerRepositoryImpl) GetWithTeam(id uint) (*entities.Player, error) {
 }
 
 // GetWithTags retrieves a player with tags
-func (r *PlayerRepositoryImpl) GetWithTags(id uint) (*entities.Player, error) {
+func (r *PlayerRepositoryImpl) GetWithTags(id string) (*entities.Player, error) {
 	var player entities.Player
-	err := r.db.Preload("Tags").First(&player, id).Error
+	err := r.db.Preload("Tags").First(&player, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -73,19 +73,19 @@ func (r *PlayerRepositoryImpl) GetWithTags(id uint) (*entities.Player, error) {
 
 // Update updates a player's information
 func (r *PlayerRepositoryImpl) Update(player *entities.Player) error {
-	r.logger.Info("Updating player with ID: %d", player.ID)
+	r.logger.Info("Updating player with ID: %s", player.ID)
 	err := r.db.Model(player).Updates(player).Error
 	if err != nil {
-		r.logger.Error("Failed to update player with ID %d: %v", player.ID, err)
+		r.logger.Error("Failed to update player with ID %s: %v", player.ID, err)
 		return err
 	}
-	r.logger.Info("Successfully updated player with ID: %d", player.ID)
+	r.logger.Info("Successfully updated player with ID: %s", player.ID)
 	return nil
 }
 
-// Delete deletes a player by ID
-func (r *PlayerRepositoryImpl) Delete(id uint) error {
-	return r.db.Delete(&entities.Player{}, id).Error
+// Delete deletes a player by ID (cedula)
+func (r *PlayerRepositoryImpl) Delete(id string) error {
+	return r.db.Delete(&entities.Player{}, "id = ?", id).Error
 }
 
 // GetTopScorers retrieves top scoring players for a season

@@ -3,8 +3,12 @@ package handlers
 import (
 	"catalyst-players/internal/application/services"
 	"catalyst-players/internal/domain/entities"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,13 +27,33 @@ func NewTeamHandler(teamService *services.TeamService) *TeamHandler {
 
 // CreateTeam handles POST /teams
 func (h *TeamHandler) CreateTeam(c *gin.Context) {
-	var team entities.Team
-	if err := c.ShouldBindJSON(&team); err != nil {
+	var request struct {
+		Name      string `json:"name" binding:"required"`
+		BirthDate string `json:"birth_date" binding:"required"`
+		Category  string `json:"category" binding:"required"`
+		Photo     []byte `json:"photo"` // Raw bytes of the photo
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.teamService.CreateTeam(&team); err != nil {
+	// Parse birth date
+	birthDate, err := time.Parse("2006-01-02", request.BirthDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid birth date format (use YYYY-MM-DD)"})
+		return
+	}
+
+	team := &entities.Team{
+		Name:      request.Name,
+		BirthDate: birthDate,
+		Category:  request.Category,
+		Photo:     request.Photo, // Store bytes directly
+	}
+
+	if err := h.teamService.CreateTeam(team); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -51,6 +75,7 @@ func (h *TeamHandler) GetTeam(c *gin.Context) {
 		return
 	}
 
+	// Photo is already []byte, return as is
 	c.JSON(http.StatusOK, team)
 }
 
@@ -68,6 +93,7 @@ func (h *TeamHandler) GetTeamWithPlayers(c *gin.Context) {
 		return
 	}
 
+	// Photo is already []byte, return as is
 	c.JSON(http.StatusOK, team)
 }
 
@@ -79,6 +105,7 @@ func (h *TeamHandler) GetAllTeams(c *gin.Context) {
 		return
 	}
 
+	// Photos are already []byte, return as is
 	c.JSON(http.StatusOK, teams)
 }
 
@@ -90,14 +117,34 @@ func (h *TeamHandler) UpdateTeam(c *gin.Context) {
 		return
 	}
 
-	var team entities.Team
-	if err := c.ShouldBindJSON(&team); err != nil {
+	var request struct {
+		Name      string `json:"name" binding:"required"`
+		BirthDate string `json:"birth_date" binding:"required"`
+		Category  string `json:"category" binding:"required"`
+		Photo     []byte `json:"photo"` // Raw bytes of the photo
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	team.ID = uint(id)
-	if err := h.teamService.UpdateTeam(&team); err != nil {
+	// Parse birth date
+	birthDate, err := time.Parse("2006-01-02", request.BirthDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid birth date format (use YYYY-MM-DD)"})
+		return
+	}
+
+	team := &entities.Team{
+		ID:        uint(id),
+		Name:      request.Name,
+		BirthDate: birthDate,
+		Category:  request.Category,
+		Photo:     request.Photo, // Store bytes directly
+	}
+
+	if err := h.teamService.UpdateTeam(team); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -135,6 +182,7 @@ func (h *TeamHandler) GetTeamsBySeasonID(c *gin.Context) {
 		return
 	}
 
+	// Photos are already []byte, return as is
 	c.JSON(http.StatusOK, teams)
 }
 
@@ -152,5 +200,6 @@ func (h *TeamHandler) GetTeamStandings(c *gin.Context) {
 		return
 	}
 
+	// Photos are already []byte, return as is
 	c.JSON(http.StatusOK, teams)
-} 
+}

@@ -3,8 +3,12 @@ package handlers
 import (
 	"catalyst-players/internal/application/services"
 	"catalyst-players/internal/domain/entities"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,13 +27,39 @@ func NewPlayerHandler(playerService *services.PlayerService) *PlayerHandler {
 
 // CreatePlayer handles POST /players
 func (h *PlayerHandler) CreatePlayer(c *gin.Context) {
-	var player entities.Player
-	if err := c.ShouldBindJSON(&player); err != nil {
+	var request struct {
+		ID        string `json:"id" binding:"required"` // Identity card (cedula)
+		Name      string `json:"name" binding:"required"`
+		LastName  string `json:"last_name" binding:"required"`
+		BirthDate string `json:"birth_date" binding:"required"`
+		TeamID    uint   `json:"team_id" binding:"required"`
+		Number    int    `json:"number" binding:"required"`
+		Photo     []byte `json:"photo"` // Raw bytes of the photo
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.playerService.CreatePlayer(&player); err != nil {
+	// Parse birth date
+	birthDate, err := time.Parse("2006-01-02", request.BirthDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid birth date format (use YYYY-MM-DD)"})
+		return
+	}
+
+	player := &entities.Player{
+		ID:        request.ID,
+		Name:      request.Name,
+		LastName:  request.LastName,
+		BirthDate: birthDate,
+		TeamID:    request.TeamID,
+		Number:    request.Number,
+		Photo:     request.Photo, // Store bytes directly
+	}
+
+	if err := h.playerService.CreatePlayer(player); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -39,35 +69,37 @@ func (h *PlayerHandler) CreatePlayer(c *gin.Context) {
 
 // GetPlayer handles GET /players/:id
 func (h *PlayerHandler) GetPlayer(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
+	id := c.Param("id")
+	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid player ID"})
 		return
 	}
 
-	player, err := h.playerService.GetPlayerByID(uint(id))
+	player, err := h.playerService.GetPlayerByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Player not found"})
 		return
 	}
 
+	// Photo is already []byte, return as is
 	c.JSON(http.StatusOK, player)
 }
 
 // GetPlayerWithTeam handles GET /players/:id/team
 func (h *PlayerHandler) GetPlayerWithTeam(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
+	id := c.Param("id")
+	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid player ID"})
 		return
 	}
 
-	player, err := h.playerService.GetPlayerWithTeam(uint(id))
+	player, err := h.playerService.GetPlayerWithTeam(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Player not found"})
 		return
 	}
 
+	// Photo is already []byte, return as is
 	c.JSON(http.StatusOK, player)
 }
 
@@ -79,6 +111,7 @@ func (h *PlayerHandler) GetAllPlayers(c *gin.Context) {
 		return
 	}
 
+	// Photos are already []byte, return as is
 	c.JSON(http.StatusOK, players)
 }
 
@@ -96,25 +129,51 @@ func (h *PlayerHandler) GetPlayersByTeamID(c *gin.Context) {
 		return
 	}
 
+	// Photos are already []byte, return as is
 	c.JSON(http.StatusOK, players)
 }
 
 // UpdatePlayer handles PUT /players/:id
 func (h *PlayerHandler) UpdatePlayer(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
+	id := c.Param("id")
+	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid player ID"})
 		return
 	}
 
-	var player entities.Player
-	if err := c.ShouldBindJSON(&player); err != nil {
+	var request struct {
+		ID        string `json:"id" binding:"required"` // Identity card (cedula)
+		Name      string `json:"name" binding:"required"`
+		LastName  string `json:"last_name" binding:"required"`
+		BirthDate string `json:"birth_date" binding:"required"`
+		TeamID    uint   `json:"team_id" binding:"required"`
+		Number    int    `json:"number" binding:"required"`
+		Photo     []byte `json:"photo"` // Raw bytes of the photo
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	player.ID = uint(id)
-	if err := h.playerService.UpdatePlayer(&player); err != nil {
+	// Parse birth date
+	birthDate, err := time.Parse("2006-01-02", request.BirthDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid birth date format (use YYYY-MM-DD)"})
+		return
+	}
+
+	player := &entities.Player{
+		ID:        request.ID,
+		Name:      request.Name,
+		LastName:  request.LastName,
+		BirthDate: birthDate,
+		TeamID:    request.TeamID,
+		Number:    request.Number,
+		Photo:     request.Photo, // Store bytes directly
+	}
+
+	if err := h.playerService.UpdatePlayer(player); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -124,13 +183,13 @@ func (h *PlayerHandler) UpdatePlayer(c *gin.Context) {
 
 // DeletePlayer handles DELETE /players/:id
 func (h *PlayerHandler) DeletePlayer(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
+	id := c.Param("id")
+	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid player ID"})
 		return
 	}
 
-	if err := h.playerService.DeletePlayer(uint(id)); err != nil {
+	if err := h.playerService.DeletePlayer(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -158,5 +217,6 @@ func (h *PlayerHandler) GetTopScorers(c *gin.Context) {
 		return
 	}
 
+	// Photos are already []byte, return as is
 	c.JSON(http.StatusOK, players)
-} 
+}
