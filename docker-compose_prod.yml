@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: catalyst_api_dev
+    container_name: catalyst_api_
     restart: unless-stopped
     env_file:
       - .env
